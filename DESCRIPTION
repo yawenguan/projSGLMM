@@ -1,0 +1,15 @@
+Package: projSGLMM
+Title: This package fits SGLMM using projection.
+Version: 0.0.0
+Authors@R: person("Yawen", "Guan", email = "yawen.guan@unl.edu", role = c("aut", "cre"))
+Description: This package fits SGLMM using projection.
+Depends: R (>= 3.5.1)
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Imports:
+	      fields,
+        geoR,
+        parallel,
+        mcmcse
+RoxygenNote: 6.1.0
