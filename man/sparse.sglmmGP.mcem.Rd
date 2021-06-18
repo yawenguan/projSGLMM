@@ -2,7 +2,7 @@
 % Please edit documentation in R/mcem.R
 \name{sparse.sglmmGP.mcem}
 \alias{sparse.sglmmGP.mcem}
-\title{Fit MCEM to SGLMM}
+\title{Fit MCEM to SGLMM xxxxx}
 \usage{
 sparse.sglmmGP.mcem(Z, X, family, offset = NULL, q, MCN, size, nu = nu,
   covfn = covfn, mc.cores = 1, coords = coords, rdist = rdist,

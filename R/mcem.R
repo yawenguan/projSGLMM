@@ -1,4 +1,4 @@
-#' Fit MCEM to SGLMM
+#' Fit MCEM to SGLMM xxxxx
 #'
 #' This function loads a file as a matrix. It assumes that the first column
 #' contains the rownames and the subsequent columns are the sample identifiers.
