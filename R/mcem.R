@@ -9,10 +9,11 @@
 #' @param x a matrix storing the covariates including the intercept
 #' @param coords data location
 #' @param family "poisson"
+#' @param nu Matern covariance function smoothness. select from 0.5,1.5,2.5,10
 #' @return beta.est regresson coefficient estimates
 #' @return wmean.update random effects estimates
 #' @export
-sparse.sglmmGP.mcem <- function(Z,X,coords = coords,family="poisson",offset=NULL,q=50,MCN=30,nu = nu,covfn=NULL,mc.cores=1,#rdist=rdist,
+sparse.sglmmGP.mcem <- function(Z,X,coords,family="poisson",offset=NULL,q=50,MCN=30,nu,covfn=NULL,mc.cores=1,
                                  mul=2,init=NULL,ceil = 500, epsilon=1e-2, zalpha = qnorm(0.75), ifbreak = T,RSR=T,
                                  RP=F,tune=0.1,track=T, ALL=T){
   
@@ -58,7 +59,7 @@ sparse.sglmmGP.mcem <- function(Z,X,coords = coords,family="poisson",offset=NULL
     w.init<-g.lm$residuals # residuals taken as random effects
     tau.init = var(w.init)
     deltalast<-delta.init<-rep(0,q) # t(MM)%*%w.init
-    bin1 <- likfit(list(coords=coords,data=w.init), ini = c(tau.init,0.2), fix.nugget = T, fix.kappa = T,kappa=0.5, lik.method = "ML", cov.model="matern") 
+    bin1 <- geoR::likfit(list(coords=coords,data=w.init), ini = c(tau.init,0.2), fix.nugget = T, fix.kappa = T,kappa=0.5, lik.method = "ML", cov.model="matern") 
     phi.init = bin1$phi
     tau.init = bin1$sigmasq
     phiidx = which.min(abs(phigrid-phi.init));phi.init = phigrid[phiidx]
@@ -179,7 +180,7 @@ sparse.sglmmGP.mcem <- function(Z,X,coords = coords,family="poisson",offset=NULL
       TWQW.update[m+1]   <- lrcur$TWQW
       
       if((m+1)%%setsize == 0 & i == 1){ # check ESS for the first EM iter
-          if(min(ess(delta.update[1:(m+1),])) >= 2*q){break}
+          if(min(mcmcse::ess(delta.update[1:(m+1),])) >= 2*q){break}
       }
       if((m+1)%%(setsize/2) == 0 & i > 1){ # check adapt MC size
         foo <- link(c(xbeta) + M%*%t(delta.update[(m+2-setsize/2):(m+1),])) # list of two "ExpZ" "VarZ"
@@ -288,7 +289,7 @@ sparse.sglmmGP.mcem <- function(Z,X,coords = coords,family="poisson",offset=NULL
     bmlf <- bm(update$log.ldiff)
     
     tic = proc.time()
-    out <- mclapply(c(phiidx-5:1,phiidx+1:5),
+    out <- parallel::mclapply(c(phiidx-5:1,phiidx+1:5),
                     function(phix) phiupdate(phix,update$taunew,update$deltasample[seq(1,update$mcsize,len=3e3),],U,d),mc.cores=mc.cores)
     tac = proc.time()-tic
     
@@ -366,14 +367,13 @@ sparse.sglmmGP.mcem <- function(Z,X,coords = coords,family="poisson",offset=NULL
 #' Fast expectation-maximization algorithms for spatial generalized linear mixed models
 #' can be found here https://arxiv.org/abs/1909.05440
 #'
-#' @param Z a vector of observation data
-#' @param x a matrix storing the covariates including the intercept
-#' @param coords data location
-#' @param family "poisson"
-#' @return beta.est regresson coefficient estimates
-#' @return wmean.update random effects estimates
+#' @param fit output from sparse.sglmmGP.mcem
+#' @param pred.X a matrix storing the covariates at prediction loc
+#' @param pred.coords a matrix prediction loc
+#' @param family 
+#' @return pred.mean a matrix storing 1000 draw of prediction
 #' @export
-sparse.sglmmGP.mcem.pred <- function(fit,pred.X,pred.coords,m=1e3,burn=0.5,rdist = rdist){
+sparse.sglmmGP.mcem.pred <- function(fit,pred.X,pred.coords,m=1e3,burn=0.5){
   require(fields)
   p = nrow(pred.coords)
   if(!is.null(fit$stopiter)){

@@ -5,21 +5,19 @@
 \title{Fit MCEM to projection-based SGLMM}
 \usage{
 sparse.sglmmGP.mcem.pred(fit, pred.X, pred.coords, m = 1000,
-  burn = 0.5, rdist = rdist)
+  burn = 0.5)
 }
 \arguments{
-\item{Z}{a vector of observation data}
+\item{fit}{output from sparse.sglmmGP.mcem}
 
-\item{x}{a matrix storing the covariates including the intercept}
+\item{pred.X}{a matrix storing the covariates at prediction loc}
 
-\item{coords}{data location}
+\item{pred.coords}{a matrix prediction loc}
 
-\item{family}{"poisson"}
+\item{family}{}
 }
 \value{
-beta.est regresson coefficient estimates
-
-wmean.update random effects estimates
+pred.mean a matrix storing 1000 draw of prediction
 }
 \description{
 This function runs the Markov chain Monte Carlo EM algorithm

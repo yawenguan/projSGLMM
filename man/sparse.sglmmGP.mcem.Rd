@@ -4,11 +4,10 @@
 \alias{sparse.sglmmGP.mcem}
 \title{Fit MCEM to projection-based SGLMM}
 \usage{
-sparse.sglmmGP.mcem(Z, X, coords = coords, family = "poisson",
-  offset = NULL, q = 50, MCN = 30, nu = nu, covfn = NULL,
-  mc.cores = 1, mul = 2, init = NULL, ceil = 500, epsilon = 0.01,
-  zalpha = qnorm(0.75), ifbreak = T, RSR = T, RP = F, tune = 0.1,
-  track = T, ALL = T)
+sparse.sglmmGP.mcem(Z, X, coords, family = "poisson", offset = NULL,
+  q = 50, MCN = 30, nu, covfn = NULL, mc.cores = 1, mul = 2,
+  init = NULL, ceil = 500, epsilon = 0.01, zalpha = qnorm(0.75),
+  ifbreak = T, RSR = T, RP = F, tune = 0.1, track = T, ALL = T)
 }
 \arguments{
 \item{Z}{a vector of observation data}
@@ -16,6 +15,8 @@ sparse.sglmmGP.mcem(Z, X, coords = coords, family = "poisson",
 \item{coords}{data location}
 
 \item{family}{"poisson"}
+
+\item{nu}{Matern covariance function smoothness. select from 0.5,1.5,2.5,10}
 
 \item{x}{a matrix storing the covariates including the intercept}
 }
