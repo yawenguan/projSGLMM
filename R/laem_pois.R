@@ -1,3 +1,14 @@
+#' Fit LAEM to projection-based SGLMM
+#'
+#' This function loads a file as a matrix. It assumes that the first column
+#' contains the rownames and the subsequent columns are the sample identifiers.
+#' Any rows with duplicated row names will be dropped with the first one being
+#' kepted.
+#'
+#' @param xx Path to the input file
+#' @param yy Path to the input file
+#' @return Aa matrix of the infile
+#' @return Ab matrix of the infile
 #' @export
 sparse.sglmmGP.laem <- function(Z,X,family="poisson",offset = NULL,q,MCN,size,nu = nu,covfn=covfn,rdist=rdist, 
                                 mc.cores=1,coords = coords,mul=2,init=NULL,ceil = ceil, epsilon=1e-3, 
@@ -285,7 +296,7 @@ sparse.sglmmGP.laem <- function(Z,X,family="poisson",offset = NULL,q,MCN,size,nu
     
     if(i>=3 & flag){ # save output for stoping iteration
       if((log.lf[i+1]-log.lf[i] < epsilon*abs(log.lf[i]))&
-         all(abs(beta.update[i+1,])-abs(beta.update[i,])< epsilon*abs(beta.update[i,]))){
+         all(abs(abs(beta.update[i+1,])-abs(beta.update[i,]))< epsilon*abs(beta.update[i,]))){
         stoptime <- proc.time() - ptm 
         stopiter <- i+1
         flag <- FALSE

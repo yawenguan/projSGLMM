@@ -1,23 +1,27 @@
-#' Fit MCEM to SGLMM xxxxx
+#' Fit MCEM to projection-based SGLMM
 #'
-#' This function loads a file as a matrix. It assumes that the first column
-#' contains the rownames and the subsequent columns are the sample identifiers.
-#' Any rows with duplicated row names will be dropped with the first one being
-#' kepted.
+#' This function runs the Markov chain Monte Carlo EM algorithm
+#' to fit SGLMM using the projection-based approach. The method paper
+#' Fast expectation-maximization algorithms for spatial generalized linear mixed models
+#' can be found here https://arxiv.org/abs/1909.05440
 #'
-#' @param xx Path to the input file
-#' @param yy Path to the input file
-#' @return Aa matrix of the infile
-#' @return Ab matrix of the infile
+#' @param Z a vector of observation data
+#' @param x a matrix storing the covariates including the intercept
+#' @param coords data location
+#' @param family "poisson"
+#' @return beta.est regresson coefficient estimates
+#' @return wmean.update random effects estimates
 #' @export
-sparse.sglmmGP.mcem <- function(Z,X,family,offset = NULL,q,MCN,size,nu = nu,covfn=covfn,mc.cores=1,coords = coords,rdist=rdist,
-                                 mul=2,init=NULL,ceil = ceil, epsilon=1e-3, zalpha = zalpha, ifbreak = ifbreak,RSR=RSR,
-                                 RP=RP,tune=0.1,track=T, ALL){
+sparse.sglmmGP.mcem <- function(Z,X,coords = coords,family="poisson",offset=NULL,q=50,MCN=30,nu = nu,covfn=NULL,mc.cores=1,#rdist=rdist,
+                                 mul=2,init=NULL,ceil = 500, epsilon=1e-2, zalpha = qnorm(0.75), ifbreak = T,RSR=T,
+                                 RP=F,tune=0.1,track=T, ALL=T){
+  
   ptm = proc.time()
   n = length(Z)
   Nbinom = rep(1,n)
-  size <- 1e2*q # initial size
+  size <- 1e3*q # initial size
   stopiter <- stoptime <- Mstop<-MMstop<-Ustop<-dstop<-samp <- NULL;  flag <- T; #for stopping EM
+  if(is.null(covfn)) covfn = covfndef(nu)
   
   if(is.null(offset)) offset = rep(1,n)
   p <- ncol(X) # define the number of fixed effects
@@ -331,7 +335,7 @@ sparse.sglmmGP.mcem <- function(Z,X,family,offset = NULL,q,MCN,size,nu = nu,covf
     
     if(i>=3 & flag){ # save output for stoping iteration
       if(bmlf$est + 2*bmlf$se < epsilon*abs(mean(update$log.l))&
-         all(abs(beta.update[i+1,])-abs(beta.update[i,])< epsilon*abs(beta.update[i,]))){
+         all(abs(abs(beta.update[i+1,])-abs(beta.update[i,]))< epsilon*abs(beta.update[i,]))){
         stoptime <- proc.time() - ptm 
         stopiter <- i
         flag  <- FALSE
@@ -354,6 +358,20 @@ sparse.sglmmGP.mcem <- function(Z,X,family,offset = NULL,q,MCN,size,nu = nu,covf
               betainit = beta.init, tauinit = tau.init, deltainit= delta.init,ceil = ceil, epsilon= epsilon,zalpha=zalpha))
 }
 
+
+#' Fit MCEM to projection-based SGLMM
+#'
+#' This function runs the Markov chain Monte Carlo EM algorithm
+#' to fit SGLMM using the projection-based approach. The method paper
+#' Fast expectation-maximization algorithms for spatial generalized linear mixed models
+#' can be found here https://arxiv.org/abs/1909.05440
+#'
+#' @param Z a vector of observation data
+#' @param x a matrix storing the covariates including the intercept
+#' @param coords data location
+#' @param family "poisson"
+#' @return beta.est regresson coefficient estimates
+#' @return wmean.update random effects estimates
 #' @export
 sparse.sglmmGP.mcem.pred <- function(fit,pred.X,pred.coords,m=1e3,burn=0.5,rdist = rdist){
   require(fields)
@@ -424,7 +442,6 @@ rpK<-function(n,r,K){ # r is demension selected, K,n is loaded from global envir
 # M1=rpK(1000,100,K)
 # max(abs(M0$d-M1$v))
 
-#' @export
 # define covariance function
 covfndef <- function(nu){
   # exponential 
@@ -498,14 +515,7 @@ SE<-function(Z,X,offset=NULL,beta,tau,delta.update,M,family,A=NULL){
   
   EZ_conditional <- foo[[1]]
   VZ_conditional <- foo[[2]]
-  
-  #   foo = apply(delta.update,1, function(delta) link(xbeta + M%*%delta))
-  #   foo = do.call("rbind",foo)
-  #   EZ_conditional <- do.call("cbind",foo[,1])
-  #   EZ_approx = apply(EZ_conditional,1,mean)
-  #   VZ_conditional = do.call("cbind",foo[,2])
-  #   VZ_approx = apply(VZ_conditional,1,mean)
-  
+
   TWQW_conditional =  apply(delta.update,1,function(x) t(x)%*%Q%*%x)
   TWQW_approx = mean(TWQW_conditional)
   
@@ -518,8 +528,6 @@ SE<-function(Z,X,offset=NULL,beta,tau,delta.update,M,family,A=NULL){
   S = rbind(S_beta,S_tau)
   StS = 1/ncol(S)*S%*%t(S)
   
-  # following quantity should be around zero.
-  # foo should be zero if converged 
   foo= c(t(X)%*%(Z-EZ_approx),(q/(2*tau) - 1/2*TWQW_approx))%*%t(c(t(X)%*%(Z-EZ_approx),(q/(2*tau) - 1/2*TWQW_approx)))
   
   # take inverse of observed infromation matrix
@@ -540,8 +548,6 @@ SE_MCEM_GP<-function(Z,X,offset=NULL,beta,tau,phi,delta.update,M,family){
   q = ncol(delta.update)
   n = length(Z)
   if(is.null(offset)) offset = rep(1,n)
-  #   QQ<-diag(c(A%*%matrix(1,n,1)))-A # precision matrix as calculated in Hughes and Haran,
-  #   Q <- t(M)%*%QQ%*%M
   p <-ncol(X) # define the number of fixed effects
   I = matrix(0,p+1,p+1)
   xbeta = X%*%beta
@@ -583,9 +589,6 @@ SE_MCEM_GP<-function(Z,X,offset=NULL,beta,tau,phi,delta.update,M,family){
   S = rbind(S_beta,S_tau)
   StS = 1/ncol(S)*S%*%t(S)
   
-  # following quantity should be around zero.
-  # foo should be zero if converged 
-  # YG: why is this not zero
   foo= c(t(X)%*%(Z-EZ_approx),(-q/(2*tau) + TWQW_approx/(2*tau^2)))%*%t(c(t(X)%*%(Z-EZ_approx),(-q/(2*tau) + TWQW_approx/(2*tau^2))))
   
   # take inverse of observed infromation matrix
@@ -657,7 +660,7 @@ post.mode <- function(s){
   d <- density(s)
   d$x[which.max(d$y)]
 }
-#' @export
+
 quants <- function(x){
   CI = quantile(x, prob = c(0.025,0.975))
   return(c(mean = mean(x), CI[1],CI[2]))
