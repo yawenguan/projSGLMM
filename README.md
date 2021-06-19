@@ -2,8 +2,11 @@
 This package contains functions to fit the projection-based SGLMM using Monte Carlo EM and Laplace approximation EM algorithms
 The method paper "Fast expectation-maximization algorithms for spatial generalized linear mixed models" can be found here https://arxiv.org/abs/1909.05440
 
+To install our package in R. 
 library(devtools)
 install_github("yawenguan/projSGLMM")
+
+An example of using R function sparse.sglmmGP.mcem to run MCEM algorithm is provided below
 library(projSGLMM)
 library(fields)
 
