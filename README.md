@@ -3,14 +3,19 @@ This package contains functions to fit the projection-based SGLMM using Monte Ca
 The method paper "Fast expectation-maximization algorithms for spatial generalized linear mixed models" can be found here https://arxiv.org/abs/1909.05440
 
 To install our package in R. 
+
+```R
 library(devtools)
 install_github("yawenguan/projSGLMM")
+```
 
 An example of using R function sparse.sglmmGP.mcem to run MCEM algorithm is provided below
+
+```R
 library(projSGLMM)
 library(fields)
 
-# simulate poisson
+# simulate poisson data
 set.seed(2021)
 family = "poisson"
 n = 1000
@@ -32,7 +37,8 @@ X.pred = as.matrix(dftest[,-c(1:4)])
 coords.pred = cbind(dftest$s.x,dftest$s.y)
 MCN=40 # number of EM iteration
 
-# fit proj. SGLMM using mcem
+# fit proj. SGLMM using mcem to the simulated data
 mcem = sparse.sglmmGP.mcem(Z,X,coords,nu=1.5)
 mcem.pred = sparse.sglmmGP.mcem.pred(mcem,X.pred,coords.pred)
 quilt.plot(coords.pred,rowMeans(mcem.pred$pred.mean))
+```
