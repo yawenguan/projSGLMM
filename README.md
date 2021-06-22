@@ -30,6 +30,14 @@ df = data.frame(s.x=coords[,1],s.y=coords[,2],Z=Z,r.e = r.e,X=X)
 dftrain = df[1:n,]
 dftest = df[-c(1:n),]
 
+# initial values
+g.lm <-glm(Z~X-1,family=family) 
+beta.init = g.lm$coefficients
+w.init<-g.lm$residuals # residuals taken as random effects
+tau.init = var(w.init)
+offset = NULL
+init = list(tau.init = tau.init,beta.init=beta.init,phi.init = 0.3)
+
 Z = dftrain$Z 
 X = as.matrix(dftrain[,-c(1:4)])
 coords = cbind(dftrain$s.x,dftrain$s.y) 
