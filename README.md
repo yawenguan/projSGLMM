@@ -30,6 +30,13 @@ df = data.frame(s.x=coords[,1],s.y=coords[,2],Z=Z,r.e = r.e,X=X)
 dftrain = df[1:n,]
 dftest = df[-c(1:n),]
 
+Z = dftrain$Z 
+X = as.matrix(dftrain[,-c(1:4)])
+coords = cbind(dftrain$s.x,dftrain$s.y) 
+X.pred = as.matrix(dftest[,-c(1:4)])
+coords.pred = cbind(dftest$s.x,dftest$s.y)
+MCN=40 # number of EM iteration
+
 # initial values
 g.lm <-glm(Z~X-1,family=family) 
 beta.init = g.lm$coefficients
@@ -38,15 +45,8 @@ tau.init = var(w.init)
 offset = NULL
 init = list(tau.init = tau.init,beta.init=beta.init,phi.init = 0.3)
 
-Z = dftrain$Z 
-X = as.matrix(dftrain[,-c(1:4)])
-coords = cbind(dftrain$s.x,dftrain$s.y) 
-X.pred = as.matrix(dftest[,-c(1:4)])
-coords.pred = cbind(dftest$s.x,dftest$s.y)
-MCN=40 # number of EM iteration
-
 # fit proj. SGLMM using mcem to the simulated data
-mcem = sparse.sglmmGP.mcem(Z,X,coords,nu=1.5)
+mcem = sparse.sglmmGP.mcem(Z,X,coords,nu=1.5,init=init)
 mcem.pred = sparse.sglmmGP.mcem.pred(mcem,X.pred,coords.pred)
 quilt.plot(coords.pred,rowMeans(mcem.pred$pred.mean))
 ```
