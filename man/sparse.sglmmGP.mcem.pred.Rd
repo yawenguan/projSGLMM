@@ -4,8 +4,7 @@
 \alias{sparse.sglmmGP.mcem.pred}
 \title{Fit MCEM to projection-based SGLMM}
 \usage{
-sparse.sglmmGP.mcem.pred(fit, pred.X, pred.coords, m = 1000,
-  burn = 0.5)
+sparse.sglmmGP.mcem.pred(fit, pred.X, pred.coords, m = 1000, burn = 0.5)
 }
 \arguments{
 \item{fit}{output from sparse.sglmmGP.mcem}
@@ -13,8 +12,6 @@ sparse.sglmmGP.mcem.pred(fit, pred.X, pred.coords, m = 1000,
 \item{pred.X}{a matrix storing the covariates at prediction loc}
 
 \item{pred.coords}{a matrix prediction loc}
-
-\item{family}{}
 }
 \value{
 pred.mean a matrix storing 1000 draw of prediction

@@ -4,10 +4,29 @@
 \alias{sparse.sglmmGP.mcem}
 \title{Fit MCEM to projection-based SGLMM}
 \usage{
-sparse.sglmmGP.mcem(Z, X, coords, family = "poisson", offset = NULL,
-  q = 50, MCN = 30, nu, covfn = NULL, mc.cores = 1, mul = 2,
-  init = NULL, ceil = 500, epsilon = 0.01, zalpha = qnorm(0.75),
-  ifbreak = T, RSR = T, RP = F, tune = 0.1, track = T, ALL = T)
+sparse.sglmmGP.mcem(
+  Z,
+  X,
+  coords,
+  family = "poisson",
+  offset = NULL,
+  q = NULL,
+  MCN = 30,
+  nu,
+  covfn = NULL,
+  mc.cores = 1,
+  mul = 2,
+  init = NULL,
+  ceil = 500,
+  epsilon = 0.01,
+  zalpha = qnorm(0.75),
+  ifbreak = T,
+  RSR = T,
+  RP = F,
+  tune = 0.1,
+  track = T,
+  ALL = T
+)
 }
 \arguments{
 \item{Z}{a vector of observation data}

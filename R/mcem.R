@@ -456,7 +456,10 @@ rpK<-function(n,r,K){ # r is demension selected, K,n is loaded from global envir
 # M1=rpK(1000,100,K)
 # max(abs(M0$d-M1$v))
 
-# define covariance function
+#' define covariance function
+#' @param nu Matern covariance function smoothness. select from 0.5,1.5,2.5,10
+#' @return covariance function
+#' @export
 covfndef <- function(nu){
   # exponential
   if(nu == 0.5) covfn <- function(dist,phi) {

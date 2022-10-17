@@ -4,12 +4,33 @@
 \alias{sparse.sglmmGP.laem}
 \title{Fit LAEM to projection-based SGLMM}
 \usage{
-sparse.sglmmGP.laem(Z, X, family = "poisson", offset = NULL, q, MCN,
-  size, nu = nu, covfn = covfn, rdist = rdist, mc.cores = 1,
-  coords = coords, mul = 2, init = NULL, ceil = ceil,
-  epsilon = 0.001, zalpha = zalpha, ifbreak = ifbreak, RSR = RSR,
-  RP = RP, tune = 0.1, track = T, tol = 1e-04, order = 1,
-  optiter = 10)
+sparse.sglmmGP.laem(
+  Z,
+  X,
+  family = "poisson",
+  offset = NULL,
+  q,
+  MCN,
+  size,
+  nu = nu,
+  covfn = covfn,
+  rdist = rdist,
+  mc.cores = 1,
+  coords = coords,
+  mul = 2,
+  init = NULL,
+  ceil = ceil,
+  epsilon = 0.001,
+  zalpha = zalpha,
+  ifbreak = ifbreak,
+  RSR = RSR,
+  RP = RP,
+  tune = 0.1,
+  track = T,
+  tol = 1e-04,
+  order = 1,
+  optiter = 10
+)
 }
 \arguments{
 \item{xx}{Path to the input file}
