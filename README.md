@@ -14,7 +14,7 @@ An example of using R function sparse.sglmmGP.mcem to run MCEM algorithm is prov
 ```R
 library(projSGLMM)
 library(fields)
-library(RandomFields)
+
 # simulate poisson data
 set.seed(2021)
 family = "poisson"
@@ -22,9 +22,17 @@ n = 1000
 grid = as.matrix(expand.grid(seq(0,1,l=20),seq(0,1,l=20)))
 coords = rbind(matrix(runif(n*2),ncol=2), grid)
 X = matrix(rnorm(nrow(coords)*2),nc=2) #simulate from iidN(0,1).no confounding
-X = coords #confounded
-rfgp = RFsimulate(RMmatern(nu=1.5, scale=0.18),coords)
-r.e  = rfgp$variable1
+
+# library(RandomFields) # RandomFields R package is not available for R 4.2.1
+# rfgp = RFsimulate(RMmatern(nu=1.5, scale=0.18),coords) # if RandomFields package is loaded
+# r.e  = rfgp$variable1
+
+# form covariance matrix
+covfn <- covfndef(nu=1.5) # nu= 0.5, 1.5, 2.5 or 10
+K = covfn(rdist(coords),phi=0.1) # phi = 0.1 corresponds to effective range ~ 0.27; as covfn(0.27,phi=0.1)~=0.05 
+
+# simulate data
+r.e = t(chol(K))%*%rnorm(nrow(K))
 expo = exp(X[,1]+X[,2]+r.e)
 Z = rpois(length(expo),expo)
 df = data.frame(s.x=coords[,1],s.y=coords[,2],Z=Z,r.e = r.e,X=X)
@@ -37,19 +45,20 @@ coords = cbind(dftrain$s.x,dftrain$s.y)
 X.pred = as.matrix(dftest[,-c(1:4)])
 coords.pred = cbind(dftest$s.x,dftest$s.y)
 
-# initial values
-g.lm <-glm(Z~X-1,family=family) 
-beta.init = g.lm$coefficients
-w.init<-g.lm$residuals # residuals taken as random effects
-tau.init = var(w.init)
-offset = NULL
-init = list(tau.init = tau.init,beta.init=beta.init,phi.init = 0.3)
+# # initial values (optional)
+# g.lm <-glm(Z~X-1,family=family) 
+# beta.init = g.lm$coefficients
+# w.init<-g.lm$residuals # residuals taken as random effects
+# tau.init = var(w.init)
+# offset = NULL
+# init = list(tau.init = tau.init,beta.init=beta.init,phi.init = 0.3)
 
 # fit proj. SGLMM using mcem to the simulated data
-mcem = sparse.sglmmGP.mcem(Z,X,coords,nu=1.5,init=init)
+mcem = sparse.sglmmGP.mcem(Z,X,coords,nu=1.5,family="poisson") #no rank is given, so rank will be selected based on BIC
 mcem.pred = sparse.sglmmGP.mcem.pred(mcem,X.pred,coords.pred)
 
 # plot results
+set.panel(1,2)
 re.est  = mcem$wmean.update[mcem$stopiter+1,]
 quilt.plot(coords,re.est,zlim = range(dftrain$r.e),main="Estimated r.e")
 quilt.plot(coords,dftrain$r.e,zlim= range(dftrain$r.e),main="True r.e")
