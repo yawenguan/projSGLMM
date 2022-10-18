@@ -1,18 +1,20 @@
 #' Fit LAEM to projection-based SGLMM
 #'
-#' This function loads a file as a matrix. It assumes that the first column
-#' contains the rownames and the subsequent columns are the sample identifiers.
-#' Any rows with duplicated row names will be dropped with the first one being
-#' kepted.
+#' This function runs the Laplace approximation EM algorithm
+#' to fit SGLMM using the projection-based approach. The method paper
+#' Fast expectation-maximization algorithms for spatial generalized linear mixed models
+#' can be found here https://arxiv.org/abs/1909.05440
 #'
-#' @param xx Path to the input file
-#' @param yy Path to the input file
-#' @return Aa matrix of the infile
-#' @return Ab matrix of the infile
+#' @param Z a vector of observation data
+#' @param x a matrix storing the covariates including the intercept
+#' @param coords data location
+#' @param family "poisson"
+#' @param nu Matern covariance function smoothness. select from 0.5,1.5,2.5,10
+#' @return beta.est regresson coefficient estimates
+#' @return wmean.update random effects estimates
 #' @export
-sparse.sglmmGP.laem <- function(Z,X,family="poisson",offset = NULL,q,MCN,size,nu = nu,covfn=covfn,rdist=rdist,
-                                mc.cores=1,coords = coords,mul=2,init=NULL,ceil = ceil, epsilon=1e-3,
-                                zalpha = zalpha, ifbreak = ifbreak,RSR=RSR,RP=RP,tune=0.1,track=T,
+sparse.sglmmGP.laem <- function(Z,X,coords,family="poisson",offset = NULL,q,MCN=20,nu = nu,covfn=NULL,
+                                mc.cores=1,mul=2,init=NULL, epsilon=1e-3, ifbreak = F,RSR=T,RP=F,tune=0.1,track=T,
                                 tol = 1e-4, order= 1,optiter = 10){
   library(fields)
   ptm = proc.time()
@@ -20,7 +22,7 @@ sparse.sglmmGP.laem <- function(Z,X,family="poisson",offset = NULL,q,MCN,size,nu
   p     <- ncol(X) # define the number of fixed effects
   PPERP <- diag(n)- X%*%chol2inv(chol(crossprod(X,X)))%*%t(X)
   dist  <- rdist(coords,coords)
-
+  if(is.null(covfn)) covfn = covfndef(nu)
   flag = T
   stopiter=Ustop =dstop = deltastop = stoptime= NULL
 
@@ -60,10 +62,6 @@ sparse.sglmmGP.laem <- function(Z,X,family="poisson",offset = NULL,q,MCN,size,nu
     w.init   <-g.lm$residuals # residuals taken as random effects
     tau.init = var(w.init)
     deltalast<-delta.init<-rep(0,q) # t(MM)%*%w.init
-    bin1     <- likfit(list(coords=coords,data=w.init), ini = c(tau.init,0.2), fix.nugget = T, fix.kappa = T,kappa=0.5, lik.method = "ML", cov.model="matern")
-    phi.init = bin1$phi
-    tau.init = bin1$sigmasq
-    phiidx = which.min(abs(phigrid-phi.init));phi.init = phigrid[phiidx]
   }else{
     beta.init<- init$beta.init
     deltalast<-delta.init<-rep(0,q)

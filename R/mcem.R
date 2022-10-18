@@ -13,8 +13,8 @@
 #' @return beta.est regresson coefficient estimates
 #' @return wmean.update random effects estimates
 #' @export
-sparse.sglmmGP.mcem <- function(Z,X,coords,family="poisson",offset=NULL,q=NULL,MCN=30,nu,covfn=NULL,mc.cores=1,
-                                 mul=2,init=NULL,ceil = 500, epsilon=1e-2, zalpha = qnorm(0.75), ifbreak = T,RSR=T,
+sparse.sglmmGP.mcem <- function(Z,X,coords,family="poisson",offset=NULL,q=NULL,MCN=20,nu,covfn=NULL,mc.cores=1,
+                                 mul=2,init=NULL,ceil = 500, epsilon=1e-2, zalpha = qnorm(0.75), ifbreak = F,RSR=T,
                                  RP=F,tune=0.1,track=T, ALL=T){
 
   ptm = proc.time()

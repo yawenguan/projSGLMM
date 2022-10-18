@@ -57,21 +57,31 @@ coords.pred = cbind(dftest$s.x,dftest$s.y)
 mcem = sparse.sglmmGP.mcem(Z,X,coords,nu=1.5,family="poisson") #no rank is given, so rank will be selected based on BIC
 mcem.pred = sparse.sglmmGP.mcem.pred(mcem,X.pred,coords.pred)
 
+laem = sparse.sglmmGP.laem(Z,X,coords,nu=1.5,family="poisson",q = mcem$q)# use the same rank as MCEM
+laem.pred = sparse.sglmmGP.laem.pred(laem,X.pred,coords.pred)
+
 # plot results
-set.panel(1,2)
-re.est  = mcem$wmean.update[mcem$stopiter+1,]
-quilt.plot(coords,re.est,zlim = range(dftrain$r.e),main="Estimated r.e")
+enditer = nrow(mcem$wmean.update)
+set.panel(1,3)
+mcemre.est  = mcem$wmean.update[enditer,] 
+quilt.plot(coords,mcemre.est,zlim = range(dftrain$r.e),main="MCEM Estimated r.e")
 quilt.plot(coords,dftrain$r.e,zlim= range(dftrain$r.e),main="True r.e")
+laemre.est  = laem$wmean.update[enditer,] 
+quilt.plot(coords,laemre.est,zlim = range(dftrain$r.e),main="LAEM Estimated r.e")
 
-linear.mean.est  = (re.est+mcem$X%*%mcem$beta.est[mcem$stopiter+1,])
+linear.mean.mcemest  = (mcemre.est+mcem$X%*%mcem$beta.est[enditer,])
+linear.mean.laemest  = (laemre.est+laem$X%*%laem$beta.est[enditer,])
 linear.mean     = rowSums(dftrain[,4:6])
-quilt.plot(coords,linear.mean.est,zlim = range(linear.mean),main="Estimated xb+r.e")
+quilt.plot(coords,linear.mean.mcemest,zlim = range(linear.mean),main="MCEM Estimated xb+r.e")
 quilt.plot(coords,linear.mean,zlim= range(linear.mean),main="True xb+r.e")
+quilt.plot(coords,linear.mean.laemest,zlim= range(linear.mean),main="LAEM Estimated xb+r.e")
 
-image.plot(matrix(rowMeans(mcem.pred$pred.re),20),zlim=range(dftest$r.e),main="Predicted r.e")
+image.plot(matrix(rowMeans(mcem.pred$pred.re),20),zlim=range(dftest$r.e),main="MCEM Predicted r.e")
+image.plot(matrix(rowMeans(laem.pred$pred.re),20),zlim=range(dftest$r.e),main="LAEM Predicted r.e")
 image.plot(matrix(dftest$r.e,20),zlim=range(dftest$r.e),main="True r.e")
 
 linear.mean = rowSums(dftest[,4:6])
-image.plot(matrix(log(rowMeans(mcem.pred$pred.mean)),20),zlim=range(linear.mean),main="Predicted xb+r.e")
+image.plot(matrix(log(rowMeans(mcem.pred$pred.mean)),20),zlim=range(linear.mean),main="MCEM Predicted xb+r.e")
+image.plot(matrix(log(rowMeans(laem.pred$pred.mean)),20),zlim=range(linear.mean),main="LAEM Predicted xb+r.e")
 image.plot(matrix(linear.mean,20),zlim=range(linear.mean),main="True xb+r.e")
 ```
